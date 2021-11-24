@@ -58,6 +58,7 @@ La ejecucion del script anterior creara el servicio en el puerto 80
 |Sincroniza todos los datos de mervel, obteniendo los characteres y comics de cada uno de ellos. (Este proceso tarda ya que por cada personaje se obtienen los datos de todos los comis y cradores del mismo)            |GET     |``http://localhost/marvel/suync``                    |
 |Obtendremos los otros héroes con los cuales nuestro personaje ha interactuado en cada uno de los cómics.    |GET     |``http://localhost/marvel/characters/{super heroe}`` |   
 |Obtendremos los editores, escritores y coloristas que han estado involucrados en los cómics del personaje.  |GET     |``http://localhost/marvel/colaborator/{super heroe}``| 
+|Elimina los datos sincronizados.  |GET     |``http://localhost/marvel/delete``| 
 
 # Copyright & License
 

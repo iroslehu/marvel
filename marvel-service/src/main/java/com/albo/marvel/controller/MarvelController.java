@@ -24,7 +24,12 @@ public class MarvelController {
 
 	@GetMapping("/marvel/sync")
 	public String sync() throws CustomException {
-		return marvelService.sync() ? "Data Synced" : "Data not Synced";
+		return marvelService.sync();
+	}
+
+	@GetMapping("/marvel/delete")
+	public String delete() throws CustomException {
+		return marvelService.delete();
 	}
 
 	@GetMapping("/marvel/colaborators/{name}")

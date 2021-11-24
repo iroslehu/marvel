@@ -7,5 +7,6 @@ import com.albo.marvel.model.response.ColabratorsResponse;
 public interface MarvelService {
     ColabratorsResponse getMarvelColaborators(String name);
     CharactersResponse getMarvelCharacters(String name);
-    boolean sync();
+    String sync();
+    String delete();
 }

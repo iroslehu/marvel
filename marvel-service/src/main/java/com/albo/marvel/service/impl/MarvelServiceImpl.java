@@ -176,12 +176,9 @@ public class MarvelServiceImpl implements MarvelService {
 	}
 
 	@Async
-	public boolean sync(){
+	public String sync(){
 
 		try {
-
-			charactersRepository.deleteAll();
-			lastSyncRepository.deleteAll();
 
 			String hash = MD5Util.hash(marvelPubliKey, marvelPrivateKey);
 
@@ -203,57 +200,68 @@ public class MarvelServiceImpl implements MarvelService {
 				List<Characters> objectCharacters = new ArrayList<>();
 				apiCallCharacters.getData().getResults().forEach(_character -> {
 
-					Characters character = new Characters();
-					character.setUid(_character.getId());
-					character.setName(_character.getName());
+					boolean isInDb = false;
 
-					String urlComics = marvelUrl + "characters/" + _character.getId() + "/comics?" + hash + "&limit=" + 100;
-					RootComics apiCallComics = restCharacters.getForObject(urlComics, RootComics.class);
+					Characters isCharacter = charactersRepository.findTopByUid(_character.getId());
+					if(isCharacter != null){
+						isInDb = true;
+					}
 
-					List<Comics> comicsList = new ArrayList<>();
-					apiCallComics.getData().getResults().forEach(_comics -> {
+					if(!isInDb){
 
-						Comics comic = new Comics();
-						comic.setTitle(_comics.getTitle());
-						comic.setCharacters(character);
+						Characters character = new Characters();
+						character.setUid(_character.getId());
+						character.setName(_character.getName());
 
-						List<Creators> creatorsList = new ArrayList<>();
-						_comics.getCreatorsComics().getItems().forEach(_creators -> {
+						String urlComics = marvelUrl + "characters/" + _character.getId() + "/comics?" + hash + "&limit=" + 100;
+						RootComics apiCallComics = restCharacters.getForObject(urlComics, RootComics.class);
 
-							Creators creators = new Creators();
-							creators.setName(_creators.getName());
-							creators.setType(_creators.getRole());
-							creators.setComics(comic);
-							creatorsList.add(creators);
+						List<Comics> comicsList = new ArrayList<>();
+						apiCallComics.getData().getResults().forEach(_comics -> {
+
+							Comics comic = new Comics();
+							comic.setTitle(_comics.getTitle());
+							comic.setCharacters(character);
+
+							List<Creators> creatorsList = new ArrayList<>();
+							_comics.getCreatorsComics().getItems().forEach(_creators -> {
+
+								Creators creators = new Creators();
+								creators.setName(_creators.getName());
+								creators.setType(_creators.getRole());
+								creators.setComics(comic);
+								creatorsList.add(creators);
+
+							});
+
+							List<Colaborators> colaboratorsList = new ArrayList<>();
+							_comics.getColaboratorsComics().getItems().forEach(_colaborators -> {
+
+								Colaborators colaborators = new Colaborators();
+								colaborators.setName(_colaborators.getName());
+								colaborators.setComics(comic);
+								colaboratorsList.add(colaborators);
+
+							});
+
+							comic.setCreatorsList(creatorsList);
+							comic.setColaboratorsLits(colaboratorsList);
+
+							comicsList.add(comic);
 
 						});
 
-						List<Colaborators> colaboratorsList = new ArrayList<>();
-						_comics.getColaboratorsComics().getItems().forEach(_colaborators -> {
+						character.setComics(comicsList);
 
-							Colaborators colaborators = new Colaborators();
-							colaborators.setName(_colaborators.getName());
-							colaborators.setComics(comic);
-							colaboratorsList.add(colaborators);
+						charactersRepository.save(character);
 
-						});
+						LastSync lastSync = new LastSync();
+						lastSync.setDate(new Date());
+						lastSyncRepository.save(lastSync);
 
-						comic.setCreatorsList(creatorsList);
-						comic.setColaboratorsLits(colaboratorsList);
+						logger.info("Last saving comics data from endpoint at " + new Date());
+					}
 
-						comicsList.add(comic);
-
-					});
-
-					character.setComics(comicsList);
-
-					charactersRepository.save(character);
-
-					LastSync lastSync = new LastSync();
-					lastSync.setDate(new Date());
-					lastSyncRepository.save(lastSync);
-
-					logger.info("Last saving comics data from endpoint at " + new Date());
 
 				});
 
@@ -269,11 +277,28 @@ public class MarvelServiceImpl implements MarvelService {
 			}
 			logger.info("End Sync");
 
-			return true;
+			return "Data Sinced";
 
 		} catch (Exception e) {
-			throw new CustomException(CharactersResponse.class, "Error", e.toString());
+
+			return "Error in syncing try again";
 		}
 	}
+
+	public String delete(){
+
+		try {
+
+			charactersRepository.deleteAll();
+			lastSyncRepository.deleteAll();
+
+			return "Data deleted";
+
+		} catch (Exception e) {
+
+			return "Error deletig data try again";
+		}
+	}
+
 
 }
