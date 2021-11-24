@@ -9,4 +9,5 @@ import java.util.List;
 
 @Repository
 public interface MarvelCharactersRepository extends JpaRepository<Characters, Integer>{
+    List<Characters> findByName(@Param("name") String name);
 }
