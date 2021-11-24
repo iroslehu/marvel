@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface MarvelLastSyncRepository extends JpaRepository<LastSync, Integer>{
+    LastSync findTopByOrderByIdDesc();
 }
