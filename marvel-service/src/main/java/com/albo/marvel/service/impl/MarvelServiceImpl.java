@@ -1,11 +1,15 @@
 package com.albo.marvel.service.impl;
 
 import com.albo.marvel.exceptionhandling.CustomException;
+import com.albo.marvel.model.dto.Colorists;
+import com.albo.marvel.model.dto.Editors;
+import com.albo.marvel.model.dto.Writers;
 import com.albo.marvel.model.entity.*;
 import com.albo.marvel.model.marvel.DataCharacters;
 import com.albo.marvel.model.marvel.RootCharacters;
 import com.albo.marvel.model.marvel.RootComics;
 import com.albo.marvel.model.response.CharactersResponse;
+import com.albo.marvel.model.response.ColabratorsResponse;
 import com.albo.marvel.repository.MarvelCharactersRepository;
 import com.albo.marvel.repository.MarvelLastSyncRepository;
 import com.albo.marvel.service.MarvelService;
@@ -45,9 +49,69 @@ public class MarvelServiceImpl implements MarvelService {
 
 
 	@Override
-	public boolean getMarvelColaborators(String name){
+	public ColabratorsResponse getMarvelColaborators(String name){
 
-		return true;
+		ColabratorsResponse colaborator = new ColabratorsResponse();
+
+		try {
+
+			List<String> editors = new ArrayList<>();
+			List<String> writers = new ArrayList<>();
+			List<String> colorists = new ArrayList<>();
+
+			List<Characters> characterList = charactersRepository.findByName(name);
+
+			characterList.forEach(_character -> {
+
+				_character.getComics().forEach(_comic -> {
+
+					_comic.getCreatorsList().forEach(_colaborator -> {
+
+						Editors editor = new Editors();
+						Writers writer = new Writers();
+						Colorists colorist = new Colorists();
+
+						switch (_colaborator.getType())
+						{
+							case "colorist":
+								if(!colorists.contains(_colaborator.getName())){
+									colorist.setName(_colaborator.getName());
+									colorists.add(colorist.getName());
+								}
+								break;
+							case "writer":
+								if(!writers.contains(_colaborator.getName())){
+									writer.setName(_colaborator.getName());
+									writers.add(writer.getName());
+								}
+								break;
+							case "editor":
+								if(!editors.contains(_colaborator.getName())){
+									editor.setName(_colaborator.getName());
+									editors.add(editor.getName());
+								}
+								break;
+
+						}
+					});
+
+				});
+
+			});
+
+			LastSync lastSync = lastSyncRepository.findTopByOrderByIdDesc();
+			if(lastSync != null)
+			{
+				colaborator.setLastSync(lastSync.getDate());
+				colaborator.setEditors(editors);
+				colaborator.setWriters(writers);
+				colaborator.setColorists(colorists);
+			}
+			return colaborator;
+
+		} catch (Exception e) {
+			throw new CustomException(CharactersResponse.class, "Error", e.toString());
+		}
 	}
 
 	@Override
@@ -68,7 +132,7 @@ public class MarvelServiceImpl implements MarvelService {
 
 					_comics.getColaboratorsLits().forEach(_colaborators -> {
 
-						if(!inList.contains(_colaborators.getName()) && !_colaborators.equals(name)){
+						if(!inList.contains(_colaborators.getName()) && !_colaborators.getName().equals(name)){
 
 							List<String> comicsList = new ArrayList<>();
 
