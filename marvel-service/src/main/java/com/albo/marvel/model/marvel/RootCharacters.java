@@ -1,4 +1,4 @@
-package com.albo.marvel.marvel;
+package com.albo.marvel.model.marvel;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class RootCharacters {

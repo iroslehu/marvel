@@ -1,10 +1,10 @@
-package com.albo.marvel.marvel;
+package com.albo.marvel.model.marvel;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
-public class ColaboratorsComics {
+public class CreatorsComics {
     @JsonProperty("items")
     public List<Item> getItems() {
 		 return this.items;
