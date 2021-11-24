@@ -1,6 +1,7 @@
 package com.albo.marvel.controller;
 
 import com.albo.marvel.exceptionhandling.CustomException;
+import com.albo.marvel.model.response.CharactersResponse;
 import com.albo.marvel.service.MarvelService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -32,7 +33,7 @@ public class MarvelController {
 
 	@GetMapping("/marvel/characters/{name}")
 	@ExceptionHandler({ CustomException.class})
-	public boolean getAllCharacters(@PathVariable String name)  throws CustomException {
+	public CharactersResponse getAllCharacters(@PathVariable String name)  throws CustomException {
 		return marvelService.getMarvelCharacters(name);
 	}
 

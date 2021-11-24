@@ -51,10 +51,64 @@ public class MarvelServiceImpl implements MarvelService {
 	}
 
 	@Override
-	public boolean getMarvelCharacters(String name){
+	public CharactersResponse getMarvelCharacters(String name){
 
+		try {
+			CharactersResponse charactersRespose = new CharactersResponse();
 
-		return true;
+			List<Characters> characterList = charactersRepository.findByName(name);
+
+			List<String> inList = new ArrayList<>();
+
+			List<com.albo.marvel.model.dto.Characters> characters = new ArrayList<>();
+
+			characterList.forEach(_character -> {
+
+				_character.getComics().forEach(_comics -> {
+
+					_comics.getColaboratorsLits().forEach(_colaborators -> {
+
+						if(!inList.contains(_colaborators.getName()) && !_colaborators.equals(name)){
+
+							List<String> comicsList = new ArrayList<>();
+
+							List<Characters> characterSubList= charactersRepository.findByName(_colaborators.getName());
+							characterSubList.forEach(_characterSubList -> {
+
+								_characterSubList.getComics().forEach(_comicsSubList -> {
+									String comic = _comicsSubList.getTitle();
+									if(!comicsList.contains(comic)){
+										comicsList.add(comic);
+									}
+								});
+
+							});
+
+							com.albo.marvel.model.dto.Characters colaborators = new com.albo.marvel.model.dto.Characters();
+							colaborators.setCharacter(_colaborators.getName());
+							colaborators.setComics(comicsList);
+
+							characters.add(colaborators);
+							inList.add(_colaborators.getName());
+
+						}
+
+					});
+				});
+
+			});
+
+			LastSync lastSync = lastSyncRepository.findTopByOrderByIdDesc();
+			if(lastSync != null) {
+				charactersRespose.setLastSync(lastSync.getDate());
+				charactersRespose.setCharacters(characters);
+			}
+
+			return charactersRespose;
+
+		} catch (Exception e) {
+			throw new CustomException(CharactersResponse.class, "Error", e.toString());
+		}
 	}
 
 	@Async
